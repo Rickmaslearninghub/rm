@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MpwapwaTC Memory Vault | Drive Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #38bdf8; --dark: #0f172a; --card-bg: #1e293b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--dark); color: white; }
+        
+        nav { display: flex; justify-content: space-between; padding: 15px 5%; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); position: fixed; width: 100%; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .logo { font-weight: 700; color: var(--primary); font-size: 1.2rem; }
+        .menu-dots { cursor: pointer; font-size: 1.5rem; }
+
+        .sidebar { position: fixed; top: 0; left: -300px; width: 260px; height: 100%; background: #0f172a; transition: 0.4s; z-index: 2000; padding: 60px 20px; border-right: 1px solid var(--primary); }
+        .sidebar.active { left: 0; }
+        .sidebar a { color: white; text-decoration: none; display: block; margin: 20px 0; font-size: 1.1rem; }
+
+        header { height: 50vh; display: flex; align-items: center; justify-content: center; text-align: center; background: linear-gradient(rgba(15,23,42,0.7), rgba(15,23,42,0.7)), url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1350&q=80'); background-size: cover; }
+        
+        .gallery { padding: 40px 5%; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .card { background: var(--card-bg); border-radius: 15px; overflow: hidden; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .card img { width: 100%; height: 250px; object-fit: cover; border-bottom: 2px solid var(--primary); }
+        .card-info { padding: 15px; text-align: center; }
+        .download-btn { background: var(--primary); color: var(--dark); padding: 8px 20px; border-radius: 5px; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 10px; }
+
+        #admin-panel { display: none; padding: 100px 5%; }
+        .admin-box { background: var(--card-bg); padding: 30px; border-radius: 15px; max-width: 600px; margin: 0 auto; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; }
+        .btn-post { background: var(--primary); width: 100%; padding: 12px; border: none; font-weight: 700; cursor: pointer; border-radius: 8px; }
+
+        .marquee { background: rgba(56, 189, 248, 0.1); padding: 10px; overflow: hidden; white-space: nowrap; border-top: 1px solid var(--primary); }
+        .marquee p { display: inline-block; animation: move 20s linear infinite; color: var(--primary); }
+        @keyframes move { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="menu-dots" onclick="toggleMenu()"><i class="fas fa-ellipsis-v"></i></div>
+        <div class="logo">MpwapwaTC Memory Vault</div>
+        <div></div>
+    </nav>
+
+    <div class="sidebar" id="sidebar">
+        <i class="fas fa-times" style="position:absolute; top:20px; right:20px; cursor:pointer" onclick="toggleMenu()"></i>
+        <a href="#" onclick="location.reload()">Home</a>
+        <a href="javascript:void(0)" onclick="openAdmin()">Admin Fedrick</a>
+    </div>
+
+    <div id="main-view">
+        <header>
+            <h1>MpwapwaTC <span>HD Vault</span></h1>
+        </header>
+
+        <section class="gallery" id="gallery">
+            </section>
+
+        <div class="marquee">
+            <p>I, Fedrick MB, have created this vault to preserve our permanent memories via Google Drive Sync. Enjoy the HD experience!</p>
+        </div>
+    </div>
+
+    <section id="admin-panel">
+        <div class="admin-box">
+            <h2>Admin: Sync Drive Image</h2>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px;">Paste the Direct Link from Google Drive below.</p>
+            <input type="text" id="event-name" placeholder="Event Name (e.g. Field Trip)">
+            <input type="text" id="drive-link" placeholder="Paste Google Drive Link here">
+            <button class="btn-post" onclick="syncDrive()">Sync to Website</button>
+            <button onclick="location.reload()" style="margin-top:10px; background:none; color:white; border:none; cursor:pointer">Back to Home</button>
+        </div>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDBnm6cfrhOPXtkmbuHGLXugLLZFdyX8-0",
+            authDomain: "rickmashub.firebaseapp.com",
+            projectId: "rickmashub",
+            storageBucket: "rickmashub.firebasestorage.app",
+            messagingSenderId: "547849734961",
+            appId: "1:547849734961:web:dba8bfbed2836a3b8bfe10"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to Convert Normal Drive Link to Direct Download Link
+        function formatDriveLink(link) {
+            try {
+                const id = link.split('/d/')[1].split('/')[0];
+                return `https://lh3.googleusercontent.com/u/0/d/${id}`;
+            } catch (e) {
+                return link;
+            }
+        }
+
+        window.syncDrive = async () => {
+            const name = document.getElementById('event-name').value;
+            const link = document.getElementById('drive-link').value;
+            if(!name || !link) return alert("Please fill all fields");
+
+            const directLink = formatDriveLink(link);
+
+            await addDoc(collection(db, "drive_memories"), {
+                name: name,
+                url: directLink,
+                createdAt: new Date()
+            });
+
+            alert("Linked Successfully!");
+            location.reload();
+        }
+
+        async function loadGallery() {
+            const q = query(collection(db, "drive_memories"), orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                gallery.innerHTML += `
+                    <div class="card">
+                        <img src="${data.url}" alt="${data.name}" onerror="this.src='https://via.placeholder.com/400x300?text=Check+Drive+Permissions'">
+                        <div class="card-info">
+                            <h3>${data.name}</h3>
+                            <a href="${data.url}" target="_blank" class="download-btn">View / Download HD</a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        loadGallery();
+    </script>
+
+    <script>
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
+        function openAdmin() {
+            let p = prompt("Fedrick, Enter Admin Password:");
+            if(p === "0764975070") {
+                document.getElementById('main-view').style.display = "none";
+                document.getElementById('admin-panel').style.display = "block";
+                toggleMenu();
+            } else { alert("Access Denied!"); }
+        }
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page title</title>
+</head>
+<body>
+    
+</body>
+</html>
