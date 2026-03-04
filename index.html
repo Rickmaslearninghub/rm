@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MpwapwaTC Memory Vault | 2026</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="MpwapwaTC Vault">
+    <meta name="apple-mobile-web-app-title" content="MpwapwaTC Vault">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="msapplication-navbutton-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -32,6 +41,12 @@
         .btn-view { background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary); }
         .btn-dl { background: var(--primary); color: var(--dark); border: none; }
 
+        /* About Section Layout */
+        .about-box { max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 35px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); text-align: left; }
+        .about-box h2 { color: var(--primary); margin-bottom: 15px; text-align: center; }
+        .about-box h3 { margin-top: 25px; color: #fff; border-left: 4px solid var(--primary); padding-left: 10px; }
+        .about-box p { line-height: 1.8; margin-top: 12px; color: #cbd5e1; font-size: 0.95rem; }
+
         footer { position: fixed; bottom: 0; width: 100%; background: rgba(15, 23, 42, 0.9); border-top: 1px solid rgba(255,255,255,0.1); padding: 10px 5%; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 60px; justify-content: center; }
         .copyright { font-size: 0.7rem; color: var(--text-muted); width: 100%; text-align: center; line-height: 1.2; }
         
@@ -42,7 +57,6 @@
         .marquee p { display: inline-block; animation: move 30s linear infinite; color: var(--primary); font-size: 0.8rem; white-space: nowrap; }
         @keyframes move { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
 
-        /* Admin Messages Style with Delete Button */
         .msg-card { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); text-align: left; position: relative; }
         .msg-name { color: var(--primary); font-weight: 700; font-size: 0.9rem; }
         .msg-text { font-size: 0.85rem; margin-top: 5px; padding-right: 40px; }
@@ -63,14 +77,14 @@
         <i class="fas fa-times" style="position:absolute; top:20px; right:20px; cursor:pointer" onclick="toggleMenu()"></i>
         <a onclick="showPage('home'); toggleMenu()">Home (Gallery)</a>
         <a onclick="showPage('names'); toggleMenu()">Students List</a>
-        <a onclick="showPage('about'); toggleMenu()">History & Purposes</a>
+        <a onclick="showPage('about'); toggleMenu()">History & Purpose</a>
         <a onclick="showPage('help'); toggleMenu()">Help & Feedback</a>
         <a onclick="checkAdmin(); toggleMenu()" style="color:var(--primary)">Admin Panel</a>
     </div>
 
     <section id="page-home" class="page-section active">
         <h1 style="margin-bottom:10px;">Memory <span style="color:var(--primary)">HD Gallery</span></h1>
-        <p style="color:var(--text-muted)">Preserving our legacy in three columns for clarity.</p>
+        <p style="color:var(--text-muted)">Preserving our legacy in three columns.</p>
         <div class="gallery" id="gallery"></div>
     </section>
 
@@ -79,6 +93,21 @@
             <h2>Student Roll (112)</h2>
             <input type="text" id="studentSearch" placeholder="Search name..." onkeyup="filterStudents()" style="width:100%; padding:12px; margin:20px 0; border-radius:8px; border:1px solid #334155; background:#0f172a; color:white;">
             <ul id="studentList" style="list-style:none; text-align:left;"></ul>
+        </div>
+    </section>
+
+    <section id="page-about" class="page-section">
+        <div class="about-box">
+            <h2>Mpwapwa Teachers' College</h2>
+            
+            <h3>History of the College</h3>
+            <p>Mpwapwa Teachers' College (Mpwapwa TC) is one of the oldest and most prestigious educational institutions in Tanzania. Located in Mpwapwa, Dodoma, it was established during the colonial era to provide high-quality teacher training. For decades, it has stood as a symbol of academic excellence, producing thousands of educators who have played a vital role in building the nation's literacy and intellectual foundation. Its historic architecture and long-standing traditions make it a landmark of Tanzanian heritage.</p>
+            
+            <h3>Purpose of the Vault</h3>
+            <p>The <b>MpwapwaTC Memory Vault</b> was founded in 2023 by <b>Fedrick MB</b>. This digital initiative was born out of a desire to prevent college memories from being lost to time. In the past, photos were stored in physical albums or on phone storage that often gets lost or corrupted.</p>
+            
+            <h3>Our Mission</h3>
+            <p>Our mission is to provide a high-definition, cloud-based sanctuary where students and alumni of the 2026 batch and beyond can store and retrieve photos of their graduations, teaching practices, and campus events. By using cloud technology, we ensure that the spirit and legacy of MpwapwaTC remain accessible to the entire community, anytime and anywhere, in absolute clarity.</p>
         </div>
     </section>
 
@@ -115,6 +144,14 @@
         </div>
     </footer>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => { /* Silence for non-https */ });
+            });
+        }
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
@@ -131,12 +168,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Orodha ya wanafunzi (Imefupishwa hapa kwa ajili ya kodi lakini inabaki 112 kwenye web yako halisi)
         const students = [{n: "Angela Izack Komba", c: "CB"}, {n: "Asante Vitus Bitalibube", c: "CB"}, {n: "Catherini Thomas Haramba", c: "CB"}, {n: "Dorcas Daudi Clavery", c: "CB"}, {n: "Fatuma Edward Kalamu", c: "CB"}, {n: "Helena Bulalo Modestus", c: "CB"}, {n: "Holana Gushema Mathias", c: "CB"}, {n: "Irene Richard Shily", c: "CB"}, {n: "Jacklina Mathias Lucas", c: "CB"}, {n: "Johnmary Ngonzi Projestus", c: "CB"}, {n: "Julita Raphael Mazingo", c: "CB"}, {n: "Justa Benedicto Laulian", c: "CB"}, {n: "Karista Philbert Myemba", c: "CB"}, {n: "Mkami Alex Mwikwabe", c: "CB"}, {n: "Monica Kulwa Pastory", c: "CB"}, {n: "Paunia Lucas Elizeus", c: "CB"}, {n: "Rebeca Ojijo Bathoromeo", c: "CB"}, {n: "Ruth Nkuba Butondo", c: "CB"}, {n: "Thereza Salamba Kulwa", c: "CB"}, {n: "Tubuni Atson Luvanda", c: "CB"}, {n: "Anthony John Gaitani", c: "CB"}, {n: "Babu Silvester Babu", c: "CB"}, {n: "Baraka Abel Rubalo", c: "CB"}, {n: "Brian Prosper Tesha", c: "CB"}, {n: "Collins Ayesiga Mushema", c: "CB"}, {n: "Datius Medard Patrick", c: "CB"}, {n: "David Gibson Kisenye", c: "CB"}, {n: "Edward Anton Jelao", c: "CB"}, {n: "Elisante Justin Swai", c: "CB"}, {n: "Evance Sifael Franael", c: "CB"}, {n: "Fravius Frances Taiden", c: "CB"}, {n: "Gabrieli Emanueli Joshua", c: "CB"}, {n: "Godfrey Seni Mwanzalima", c: "CB"}, {n: "Gozbert Gidion Gwelinyuma", c: "CB"}, {n: "Hilonga S Tloori", c: "CB"}, {n: "Idid Almasi Kivumbi", c: "CB"}, {n: "Jacob Dominick Ami", c: "CB"}, {n: "James Phabian Mahuma", c: "CB"}, {n: "Japhet Samson Charles", c: "CB"}, {n: "Jofrey Mihayo Mussa", c: "CB"}, {n: "Jumanne Musa Mganga", c: "CB"}, {n: "Kelvin John Martin", c: "CB"}, {n: "Kitaro Mwita Nyhita", c: "CB"}, {n: "Michael James Manyilizu", c: "CB"}, {n: "Mohamedi Abdul Said", c: "CB"}, {n: "Njile Malimi Ngala", c: "CB"}, {n: "Paskal Kandino Christiani", c: "CB"}, {n: "Rabahu Abdalah Hassan", c: "CB"}, {n: "Salumu Masha Jota", c: "CB"}, {n: "Samson Cahales Mathias", c: "CB"}, {n: "Sheikha Ahmadi Alli", c: "CB"}, {n: "Halima Jackson Kyango", c: "CB"}, {n: "Maria Antoni Dawi", c: "CB"}, {n: "Nagris Willie Mgonea", c: "CB"}, {n: "Najma Adamu Mohamedi", c: "CB"}, {n: "Onaida Rajabu Kabonge", c: "CB"}, {n: "Gabriel Gabriel Samwel", c: "CB"}, {n: "Lugano Lucas Mwakutundu", c: "CB"}, {n: "Phidon Paschal Mterani", c: "CB"}, {n: "Abelina Elieza Mking’imle", c: "CM"}, {n: "Fatuma Ramadhani Simbula", c: "CM"}, {n: "Fortunata Michael Gervas", c: "CM"}, {n: "Geroda Williamu Mayuga", c: "CM"}, {n: "Hindu Daudi Adamu", c: "CM"}, {n: "Shija Robert Stephano", c: "CM"}, {n: "James Phanuel Kazingo", c: "CM"}, {n: "Juma Maliatabu Mabula", c: "CM"}, {n: "Kinara Venance Mwasamba", c: "CM"}, {n: "Kwangura Magafu Maingu", c: "CM"}, {n: "Paschal Nyamazege Waryoba", c: "CM"}, {n: "Thomas Mkama Mnaku", c: "CM"}, {n: "Sofia Fidel Daniel", c: "CM"}, {n: "Gaston Mwiyone Peter", c: "CM"}, {n: "Emmanuel Elisha Ntugwa", c: "MCs"}, {n: "Antina Johanes Kakwezi", c: "PB"}, {n: "Jesca Simon Joseph", c: "PB"}, {n: "Athumani Jumanne Shabani", c: "PB"}, {n: "Davis Elias Chibuga", c: "PB"}, {n: "Grayson Rojas Temu", c: "PB"}, {n: "Ibrahim Juma Kabalila", c: "PB"}, {n: "Iziaka Shabani Hamisi", c: "PB"}, {n: "Esther Nzumbi Marco", c: "PB"}, {n: "Ramadhani Rajabu Yusufu", c: "PB"}, {n: "Shamira Zed Twaha", c: "PC"}, {n: "Ezra Elias Lugata", c: "PC"}, {n: "Juma Masunga Mboje", c: "PC"}, {n: "Kelyson Majagi Bwire", c: "PC"}, {n: "Ntinginya Senya Mpumbi", c: "PC"}, {n: "Ntobi Masa Ntobi", c: "PC"}, {n: "Renald Gharama Masalu", c: "PC"}, {n: "Samwel Sayi Kulwa", c: "PC"}, {n: "Sele Mahega Ntugwa", c: "PC"}, {n: "Tegemea Kenedy Kibako", c: "PC"}, {n: "Elisha Jofrey Mitayoni", c: "PC"}, {n: "Fabian Francis Mwaluka", c: "PC"}, {n: "Lwaho Sobola Malashi", c: "PC"}, {n: "Masumbuko Deogratius Mwendesha", c: "PC"}, {n: "Ofili Nikuntufya Mwaigomole", c: "PC"}, {n: "Daines Alex Kindimba", c: "PM"}, {n: "Alphonce Jacob Bunala", c: "PM"}, {n: "Danison Mlashani Daniely", c: "PM"}, {n: "Emile Peter Maurid", c: "PM"}, {n: "Fredrick Mashili Bunzari", c: "PM"}, {n: "George Charles Masasila", c: "PM"}, {n: "Gidion Emmanuel Mcharya", c: "PM"}, {n: "Makingi Shija Nyambali", c: "PM"}, {n: "Maljan Juakali Japhal", c: "PM"}, {n: "Maximilian Matage Majige", c: "PM"}, {n: "Mchele Abdalah Paulo", c: "PM"}, {n: "Michael Jonas Komba", c: "PM"}, {n: "Ramadhani Mashaka Juma", c: "PM"}, {n: "Shabani Swalehe Shabani", c: "PM"}];
 
         window.showPage = (id) => {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById('page-' + id).classList.add('active');
+            window.scrollTo(0,0);
             if(id === 'admin') loadAdminMessages();
         };
 
@@ -168,6 +205,7 @@
                 card.innerHTML = `<button class="btn-delete-msg" onclick="deleteMessage('${d_doc.id}')"><i class="fas fa-trash"></i></button><div class="msg-name">${d.name || "Anon"}</div><div class="msg-text">${d.message}</div>`;
                 msgDiv.appendChild(card);
             });
+            if(snap.empty) msgDiv.innerHTML = "<p>No messages yet.</p>";
         }
 
         window.deleteMessage = async (id) => {
