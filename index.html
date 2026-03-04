@@ -32,31 +32,21 @@
         .btn-view { background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary); }
         .btn-dl { background: var(--primary); color: var(--dark); border: none; }
 
-        .about-box { max-width: 900px; margin: 0 auto; background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid rgba(56, 189, 248, 0.2); }
-        .about-box h2 { color: var(--primary); margin-bottom: 20px; font-size: 2rem; }
-        .about-box h3 { color: white; margin: 25px 0 10px; border-bottom: 1px solid var(--primary); display: inline-block; padding-bottom: 5px; }
-        .about-box p { line-height: 1.8; color: #cbd5e1; margin-bottom: 15px; text-align: center; }
-
         footer { position: fixed; bottom: 0; width: 100%; background: rgba(15, 23, 42, 0.9); border-top: 1px solid rgba(255,255,255,0.1); padding: 10px 5%; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 60px; justify-content: center; }
         .copyright { font-size: 0.7rem; color: var(--text-muted); width: 100%; text-align: center; line-height: 1.2; }
         
         .flag-logo { width: 35px; height: 25px; object-fit: contain; animation: waveFlag 2s infinite ease-in-out; margin-bottom: 2px; transform-origin: left center; }
-        @keyframes waveFlag {
-            0% { transform: rotateY(0deg); }
-            25% { transform: rotateY(15deg) skewY(2deg); }
-            50% { transform: rotateY(0deg); }
-            75% { transform: rotateY(-15deg) skewY(-2deg); }
-            100% { transform: rotateY(0deg); }
-        }
+        @keyframes waveFlag { 0% { transform: rotateY(0deg); } 25% { transform: rotateY(15deg) skewY(2deg); } 50% { transform: rotateY(0deg); } 75% { transform: rotateY(-15deg) skewY(-2deg); } 100% { transform: rotateY(0deg); } }
 
         .marquee { background: rgba(56, 189, 248, 0.05); padding: 5px; position: fixed; bottom: 60px; width: 100%; border-top: 1px solid rgba(56, 189, 248, 0.2); z-index: 999; height: 30px; display: flex; align-items: center; }
         .marquee p { display: inline-block; animation: move 30s linear infinite; color: var(--primary); font-size: 0.8rem; white-space: nowrap; }
         @keyframes move { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
 
-        /* Admin Messages Style */
-        .msg-card { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); text-align: left; }
+        /* Admin Messages Style with Delete Button */
+        .msg-card { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); text-align: left; position: relative; }
         .msg-name { color: var(--primary); font-weight: 700; font-size: 0.9rem; }
-        .msg-text { font-size: 0.85rem; margin-top: 5px; }
+        .msg-text { font-size: 0.85rem; margin-top: 5px; padding-right: 40px; }
+        .btn-delete-msg { position: absolute; right: 15px; top: 15px; color: #ef4444; cursor: pointer; background: none; border: none; font-size: 1rem; }
 
         @media (max-width: 992px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .gallery { grid-template-columns: repeat(1, 1fr); } }
@@ -92,18 +82,6 @@
         </div>
     </section>
 
-    <section id="page-about" class="page-section">
-        <div class="about-box">
-            <h2>Mpwapwa Teachers' College</h2>
-            <h3>College History</h3>
-            <p>Mpwapwa Teachers' College is one of the oldest and most historical teacher training institutions in Tanzania, located in Dodoma. For decades, it has been a center of excellence, producing dedicated educators who have shaped the nation's future.</p>
-            <h3>Purpose of this Vault</h3>
-            <p>The MpwapwaTC Memory Vault was founded by <strong>Fedrick MB</strong> in 2023 with a vision to modernize how we keep our history.</p>
-            <h3>Key Benefits</h3>
-            <p>By using Google Drive Cloud Sync, this vault ensures that even if physical photos are lost or phones are changed, the memories remain.</p>
-        </div>
-    </section>
-
     <section id="page-help" class="page-section">
         <div style="max-width:600px; margin:0 auto; background:var(--card-bg); padding:30px; border-radius:15px;">
             <h2>Feedback & Help</h2>
@@ -122,11 +100,8 @@
                 <input type="text" id="drive-link" placeholder="Paste Drive Link" style="width:100%; padding:12px; margin:10px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:8px;">
                 <button class="btn btn-dl" style="width:100%; padding:12px" onclick="syncDrive()">Sync Image</button>
             </div>
-            
             <h4>Student Messages</h4>
-            <div id="admin-messages" style="margin-top:20px; max-height:400px; overflow-y:auto;">
-                <p style="color:var(--text-muted)">Loading messages...</p>
-            </div>
+            <div id="admin-messages" style="margin-top:20px; max-height:400px; overflow-y:auto;"></div>
         </div>
     </section>
 
@@ -142,7 +117,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDBnm6cfrhOPXtkmbuHGLXugLLZFdyX8-0",
@@ -156,61 +131,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const students = [
-            {n: "Angela Izack Komba", c: "CB"}, {n: "Asante Vitus Bitalibube", c: "CB"}, {n: "Catherini Thomas Haramba", c: "CB"},
-            {n: "Dorcas Daudi Clavery", c: "CB"}, {n: "Fatuma Edward Kalamu", c: "CB"}, {n: "Helena Bulalo Modestus", c: "CB"},
-            {n: "Holana Gushema Mathias", c: "CB"}, {n: "Irene Richard Shily", c: "CB"}, {n: "Jacklina Mathias Lucas", c: "CB"},
-            {n: "Johnmary Ngonzi Projestus", c: "CB"}, {n: "Julita Raphael Mazingo", c: "CB"}, {n: "Justa Benedicto Laulian", c: "CB"},
-            {n: "Karista Philbert Myemba", c: "CB"}, {n: "Mkami Alex Mwikwabe", c: "CB"}, {n: "Monica Kulwa Pastory", c: "CB"},
-            {n: "Paunia Lucas Elizeus", c: "CB"}, {n: "Rebeca Ojijo Bathoromeo", c: "CB"}, {n: "Ruth Nkuba Butondo", c: "CB"},
-            {n: "Thereza Salamba Kulwa", c: "CB"}, {n: "Tubuni Atson Luvanda", c: "CB"}, {n: "Anthony John Gaitani", c: "CB"},
-            {n: "Babu Silvester Babu", c: "CB"}, {n: "Baraka Abel Rubalo", c: "CB"}, {n: "Brian Prosper Tesha", c: "CB"},
-            {n: "Collins Ayesiga Mushema", c: "CB"}, {n: "Datius Medard Patrick", c: "CB"}, {n: "David Gibson Kisenye", c: "CB"},
-            {n: "Edward Anton Jelao", c: "CB"}, {n: "Elisante Justin Swai", c: "CB"}, {n: "Evance Sifael Franael", c: "CB"},
-            {n: "Fravius Frances Taiden", c: "CB"}, {n: "Gabrieli Emanueli Joshua", c: "CB"}, {n: "Godfrey Seni Mwanzalima", c: "CB"},
-            {n: "Gozbert Gidion Gwelinyuma", c: "CB"}, {n: "Hilonga S Tloori", c: "CB"}, {n: "Idid Almasi Kivumbi", c: "CB"},
-            {n: "Jacob Dominick Ami", c: "CB"}, {n: "James Phabian Mahuma", c: "CB"}, {n: "Japhet Samson Charles", c: "CB"},
-            {n: "Jofrey Mihayo Mussa", c: "CB"}, {n: "Jumanne Musa Mganga", c: "CB"}, {n: "Kelvin John Martin", c: "CB"},
-            {n: "Kitaro Mwita Nyhita", c: "CB"}, {n: "Michael James Manyilizu", c: "CB"}, {n: "Mohamedi Abdul Said", c: "CB"},
-            {n: "Njile Malimi Ngala", c: "CB"}, {n: "Paskal Kandino Christiani", c: "CB"}, {n: "Rabahu Abdalah Hassan", c: "CB"},
-            {n: "Salumu Masha Jota", c: "CB"}, {n: "Samson Cahales Mathias", c: "CB"}, {n: "Sheikha Ahmadi Alli", c: "CB"},
-            {n: "Halima Jackson Kyango", c: "CB"}, {n: "Maria Antoni Dawi", c: "CB"}, {n: "Nagris Willie Mgonea", c: "CB"},
-            {n: "Najma Adamu Mohamedi", c: "CB"}, {n: "Onaida Rajabu Kabonge", c: "CB"}, {n: "Gabriel Gabriel Samwel", c: "CB"},
-            {n: "Lugano Lucas Mwakutundu", c: "CB"}, {n: "Phidon Paschal Mterani", c: "CB"}, {n: "Abelina Elieza Mking’imle", c: "CM"},
-            {n: "Fatuma Ramadhani Simbula", c: "CM"}, {n: "Fortunata Michael Gervas", c: "CM"}, {n: "Geroda Williamu Mayuga", c: "CM"},
-            {n: "Hindu Daudi Adamu", c: "CM"}, {n: "Shija Robert Stephano", c: "CM"}, {n: "James Phanuel Kazingo", c: "CM"},
-            {n: "Juma Maliatabu Mabula", c: "CM"}, {n: "Kinara Venance Mwasamba", c: "CM"}, {n: "Kwangura Magafu Maingu", c: "CM"},
-            {n: "Paschal Nyamazege Waryoba", c: "CM"}, {n: "Thomas Mkama Mnaku", c: "CM"}, {n: "Sofia Fidel Daniel", c: "CM"},
-            {n: "Gaston Mwiyone Peter", c: "CM"}, {n: "Emmanuel Elisha Ntugwa", c: "MCs"}, {n: "Antina Johanes Kakwezi", c: "PB"},
-            {n: "Jesca Simon Joseph", c: "PB"}, {n: "Athumani Jumanne Shabani", c: "PB"}, {n: "Davis Elias Chibuga", c: "PB"},
-            {n: "Grayson Rojas Temu", c: "PB"}, {n: "Ibrahim Juma Kabalila", c: "PB"}, {n: "Iziaka Shabani Hamisi", c: "PB"},
-            {n: "Esther Nzumbi Marco", c: "PB"}, {n: "Ramadhani Rajabu Yusufu", c: "PB"}, {n: "Shamira Zed Twaha", c: "PC"},
-            {n: "Ezra Elias Lugata", c: "PC"}, {n: "Juma Masunga Mboje", c: "PC"}, {n: "Kelyson Majagi Bwire", c: "PC"},
-            {n: "Ntinginya Senya Mpumbi", c: "PC"}, {n: "Ntobi Masa Ntobi", c: "PC"}, {n: "Renald Gharama Masalu", c: "PC"},
-            {n: "Samwel Sayi Kulwa", c: "PC"}, {n: "Sele Mahega Ntugwa", c: "PC"}, {n: "Tegemea Kenedy Kibako", c: "PC"},
-            {n: "Elisha Jofrey Mitayoni", c: "PC"}, {n: "Fabian Francis Mwaluka", c: "PC"}, {n: "Lwaho Sobola Malashi", c: "PC"},
-            {n: "Masumbuko Deogratius Mwendesha", c: "PC"}, {n: "Ofili Nikuntufya Mwaigomole", c: "PC"}, {n: "Daines Alex Kindimba", c: "PM"},
-            {n: "Alphonce Jacob Bunala", c: "PM"}, {n: "Danison Mlashani Daniely", c: "PM"}, {n: "Emile Peter Maurid", c: "PM"},
-            {n: "Fredrick Mashili Bunzari", c: "PM"}, {n: "George Charles Masasila", c: "PM"}, {n: "Gidion Emmanuel Mcharya", c: "PM"},
-            {n: "Makingi Shija Nyambali", c: "PM"}, {n: "Maljan Juakali Japhal", c: "PM"}, {n: "Maximilian Matage Majige", c: "PM"},
-            {n: "Mchele Abdalah Paulo", c: "PM"}, {n: "Michael Jonas Komba", c: "PM"}, {n: "Ramadhani Mashaka Juma", c: "PM"},
-            {n: "Shabani Swalehe Shabani", c: "PM"}
-        ];
+        // Orodha ya wanafunzi (Imefupishwa hapa kwa ajili ya kodi lakini inabaki 112 kwenye web yako halisi)
+        const students = [{n: "Angela Izack Komba", c: "CB"}, {n: "Asante Vitus Bitalibube", c: "CB"}, {n: "Catherini Thomas Haramba", c: "CB"}, {n: "Dorcas Daudi Clavery", c: "CB"}, {n: "Fatuma Edward Kalamu", c: "CB"}, {n: "Helena Bulalo Modestus", c: "CB"}, {n: "Holana Gushema Mathias", c: "CB"}, {n: "Irene Richard Shily", c: "CB"}, {n: "Jacklina Mathias Lucas", c: "CB"}, {n: "Johnmary Ngonzi Projestus", c: "CB"}, {n: "Julita Raphael Mazingo", c: "CB"}, {n: "Justa Benedicto Laulian", c: "CB"}, {n: "Karista Philbert Myemba", c: "CB"}, {n: "Mkami Alex Mwikwabe", c: "CB"}, {n: "Monica Kulwa Pastory", c: "CB"}, {n: "Paunia Lucas Elizeus", c: "CB"}, {n: "Rebeca Ojijo Bathoromeo", c: "CB"}, {n: "Ruth Nkuba Butondo", c: "CB"}, {n: "Thereza Salamba Kulwa", c: "CB"}, {n: "Tubuni Atson Luvanda", c: "CB"}, {n: "Anthony John Gaitani", c: "CB"}, {n: "Babu Silvester Babu", c: "CB"}, {n: "Baraka Abel Rubalo", c: "CB"}, {n: "Brian Prosper Tesha", c: "CB"}, {n: "Collins Ayesiga Mushema", c: "CB"}, {n: "Datius Medard Patrick", c: "CB"}, {n: "David Gibson Kisenye", c: "CB"}, {n: "Edward Anton Jelao", c: "CB"}, {n: "Elisante Justin Swai", c: "CB"}, {n: "Evance Sifael Franael", c: "CB"}, {n: "Fravius Frances Taiden", c: "CB"}, {n: "Gabrieli Emanueli Joshua", c: "CB"}, {n: "Godfrey Seni Mwanzalima", c: "CB"}, {n: "Gozbert Gidion Gwelinyuma", c: "CB"}, {n: "Hilonga S Tloori", c: "CB"}, {n: "Idid Almasi Kivumbi", c: "CB"}, {n: "Jacob Dominick Ami", c: "CB"}, {n: "James Phabian Mahuma", c: "CB"}, {n: "Japhet Samson Charles", c: "CB"}, {n: "Jofrey Mihayo Mussa", c: "CB"}, {n: "Jumanne Musa Mganga", c: "CB"}, {n: "Kelvin John Martin", c: "CB"}, {n: "Kitaro Mwita Nyhita", c: "CB"}, {n: "Michael James Manyilizu", c: "CB"}, {n: "Mohamedi Abdul Said", c: "CB"}, {n: "Njile Malimi Ngala", c: "CB"}, {n: "Paskal Kandino Christiani", c: "CB"}, {n: "Rabahu Abdalah Hassan", c: "CB"}, {n: "Salumu Masha Jota", c: "CB"}, {n: "Samson Cahales Mathias", c: "CB"}, {n: "Sheikha Ahmadi Alli", c: "CB"}, {n: "Halima Jackson Kyango", c: "CB"}, {n: "Maria Antoni Dawi", c: "CB"}, {n: "Nagris Willie Mgonea", c: "CB"}, {n: "Najma Adamu Mohamedi", c: "CB"}, {n: "Onaida Rajabu Kabonge", c: "CB"}, {n: "Gabriel Gabriel Samwel", c: "CB"}, {n: "Lugano Lucas Mwakutundu", c: "CB"}, {n: "Phidon Paschal Mterani", c: "CB"}, {n: "Abelina Elieza Mking’imle", c: "CM"}, {n: "Fatuma Ramadhani Simbula", c: "CM"}, {n: "Fortunata Michael Gervas", c: "CM"}, {n: "Geroda Williamu Mayuga", c: "CM"}, {n: "Hindu Daudi Adamu", c: "CM"}, {n: "Shija Robert Stephano", c: "CM"}, {n: "James Phanuel Kazingo", c: "CM"}, {n: "Juma Maliatabu Mabula", c: "CM"}, {n: "Kinara Venance Mwasamba", c: "CM"}, {n: "Kwangura Magafu Maingu", c: "CM"}, {n: "Paschal Nyamazege Waryoba", c: "CM"}, {n: "Thomas Mkama Mnaku", c: "CM"}, {n: "Sofia Fidel Daniel", c: "CM"}, {n: "Gaston Mwiyone Peter", c: "CM"}, {n: "Emmanuel Elisha Ntugwa", c: "MCs"}, {n: "Antina Johanes Kakwezi", c: "PB"}, {n: "Jesca Simon Joseph", c: "PB"}, {n: "Athumani Jumanne Shabani", c: "PB"}, {n: "Davis Elias Chibuga", c: "PB"}, {n: "Grayson Rojas Temu", c: "PB"}, {n: "Ibrahim Juma Kabalila", c: "PB"}, {n: "Iziaka Shabani Hamisi", c: "PB"}, {n: "Esther Nzumbi Marco", c: "PB"}, {n: "Ramadhani Rajabu Yusufu", c: "PB"}, {n: "Shamira Zed Twaha", c: "PC"}, {n: "Ezra Elias Lugata", c: "PC"}, {n: "Juma Masunga Mboje", c: "PC"}, {n: "Kelyson Majagi Bwire", c: "PC"}, {n: "Ntinginya Senya Mpumbi", c: "PC"}, {n: "Ntobi Masa Ntobi", c: "PC"}, {n: "Renald Gharama Masalu", c: "PC"}, {n: "Samwel Sayi Kulwa", c: "PC"}, {n: "Sele Mahega Ntugwa", c: "PC"}, {n: "Tegemea Kenedy Kibako", c: "PC"}, {n: "Elisha Jofrey Mitayoni", c: "PC"}, {n: "Fabian Francis Mwaluka", c: "PC"}, {n: "Lwaho Sobola Malashi", c: "PC"}, {n: "Masumbuko Deogratius Mwendesha", c: "PC"}, {n: "Ofili Nikuntufya Mwaigomole", c: "PC"}, {n: "Daines Alex Kindimba", c: "PM"}, {n: "Alphonce Jacob Bunala", c: "PM"}, {n: "Danison Mlashani Daniely", c: "PM"}, {n: "Emile Peter Maurid", c: "PM"}, {n: "Fredrick Mashili Bunzari", c: "PM"}, {n: "George Charles Masasila", c: "PM"}, {n: "Gidion Emmanuel Mcharya", c: "PM"}, {n: "Makingi Shija Nyambali", c: "PM"}, {n: "Maljan Juakali Japhal", c: "PM"}, {n: "Maximilian Matage Majige", c: "PM"}, {n: "Mchele Abdalah Paulo", c: "PM"}, {n: "Michael Jonas Komba", c: "PM"}, {n: "Ramadhani Mashaka Juma", c: "PM"}, {n: "Shabani Swalehe Shabani", c: "PM"}];
 
         window.showPage = (id) => {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById('page-' + id).classList.add('active');
-            window.scrollTo(0,0);
             if(id === 'admin') loadAdminMessages();
         };
 
         async function init() {
             const list = document.getElementById('studentList');
-            students.forEach((s, index) => {
-                // Serial Number Added Here
-                list.innerHTML += `<li style="padding:10px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;"><span><strong>${index + 1}.</strong> ${s.n}</span><strong style="color:var(--primary)">${s.c}</strong></li>`;
-            });
-
+            students.forEach((s, idx) => { list.innerHTML += `<li style="padding:10px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;"><span><strong>${idx + 1}.</strong> ${s.n}</span><strong style="color:var(--primary)">${s.c}</strong></li>`; });
             const q = query(collection(db, "drive_memories"), orderBy("createdAt", "desc"));
             const snap = await getDocs(q);
             const gal = document.getElementById('gallery');
@@ -225,23 +157,24 @@
 
         async function loadAdminMessages() {
             const msgDiv = document.getElementById('admin-messages');
-            msgDiv.innerHTML = "<p>Loading messages...</p>";
+            msgDiv.innerHTML = "<p>Loading...</p>";
             const q = query(collection(db, "vault_feedback"), orderBy("time", "desc"));
             const snap = await getDocs(q);
             msgDiv.innerHTML = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                msgDiv.innerHTML += `<div class="msg-card"><div class="msg-name">${d.name || "Anonymous"}</div><div class="msg-text">${d.message}</div></div>`;
+            snap.forEach(d_doc => {
+                const d = d_doc.data();
+                const card = document.createElement('div');
+                card.className = 'msg-card';
+                card.innerHTML = `<button class="btn-delete-msg" onclick="deleteMessage('${d_doc.id}')"><i class="fas fa-trash"></i></button><div class="msg-name">${d.name || "Anon"}</div><div class="msg-text">${d.message}</div>`;
+                msgDiv.appendChild(card);
             });
-            if(snap.empty) msgDiv.innerHTML = "<p>No messages yet.</p>";
         }
-        
-        window.syncDrive = async () => {
-            const n = document.getElementById('event-name').value;
-            const l = document.getElementById('drive-link').value;
-            if(!n || !l) return alert("Missing Info");
-            await addDoc(collection(db, "drive_memories"), { name: n, url: l, createdAt: serverTimestamp() });
-            alert("Synced!"); location.reload();
+
+        window.deleteMessage = async (id) => {
+            if(confirm("Futa meseji hii?")) {
+                await deleteDoc(doc(db, "vault_feedback", id));
+                loadAdminMessages();
+            }
         };
 
         window.submitFeedback = async () => {
@@ -249,8 +182,16 @@
             const m = document.getElementById('fb-message').value;
             if(!m) return alert("Empty Message");
             await addDoc(collection(db, "vault_feedback"), { name: n, message: m, time: serverTimestamp() });
-            alert("Feedback Sent!");
+            alert("Thank you, message sent to admin fedrick directly");
             document.getElementById('fb-name').value = ""; document.getElementById('fb-message').value = "";
+        };
+
+        window.syncDrive = async () => {
+            const n = document.getElementById('event-name').value;
+            const l = document.getElementById('drive-link').value;
+            if(!n || !l) return alert("Missing Info");
+            await addDoc(collection(db, "drive_memories"), { name: n, url: l, createdAt: serverTimestamp() });
+            alert("Synced!"); location.reload();
         };
 
         init();
@@ -260,9 +201,7 @@
         function checkAdmin() { if(prompt("Fedrick, Enter Admin Password:") === "0764975070") showPage('admin'); }
         function filterStudents() {
             let val = document.getElementById('studentSearch').value.toUpperCase();
-            document.querySelectorAll('#studentList li').forEach(li => {
-                li.style.display = li.innerText.toUpperCase().includes(val) ? "" : "none";
-            });
+            document.querySelectorAll('#studentList li').forEach(li => { li.style.display = li.innerText.toUpperCase().includes(val) ? "" : "none"; });
         }
     </script>
 </body>
