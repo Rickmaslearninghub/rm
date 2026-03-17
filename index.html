@@ -36,8 +36,7 @@
         .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; transition: 0.3s; border: 1px solid rgba(255,255,255,0.05); }
         .card img { width: 100%; height: 180px; object-fit: cover; }
         .card-info { padding: 15px; }
-        .card-info h4 { font-size: 0.95rem; margin-bottom: 5px; }
-        .card-meta { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px; display: block; }
+        .card-meta { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; display: block; }
         .card-btns { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
         .btn { padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .btn-view { background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary); }
@@ -101,11 +100,11 @@
         <div class="about-box">
             <h2>Mpwapwa Teachers' College</h2>
             <h3>History of the College</h3>
-            <p>Mpwapwa Teachers' College (Mpwapwa TC) is one of the oldest and most prestigious educational institutions in Tanzania. Located in Mpwapwa, Dodoma, it was established during the colonial era to provide high-quality teacher training.</p>
+            <p>Mpwapwa Teachers' College (Mpwapwa TC) is one of the oldest and most prestigious educational institutions in Tanzania. Located in Mpwapwa, Dodoma...</p>
             <h3>Purpose of the Vault</h3>
-            <p>The <b>MpwapwaTC Memory Vault</b> was founded in 2023 by <b>Fedrick MB</b>. This digital initiative was born out of a desire to prevent college memories from being lost to time.</p>
+            <p>The <b>MpwapwaTC Memory Vault</b> was founded in 2023 by <b>Fedrick MB</b>...</p>
             <h3>Our Mission</h3>
-            <p>Our mission is to provide a high-definition, cloud-based sanctuary where students and alumni of the 2026 batch and beyond can store and retrieve photos of their graduations and campus events.</p>
+            <p>Our mission is to provide a high-definition, cloud-based sanctuary...</p>
         </div>
     </section>
 
@@ -126,7 +125,6 @@
                 <input type="text" id="event-name" placeholder="Event Name" style="width:100%; padding:12px; margin:10px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:8px;">
                 <input type="text" id="drive-link" placeholder="Paste Drive Link" style="width:100%; padding:12px; margin:10px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:8px;">
                 <button class="btn btn-dl" style="width:100%; padding:12px" onclick="syncDrive()">Sync Image</button>
-                <p id="loc-status" style="font-size:0.7rem; color:var(--primary); margin-top:5px;"></p>
             </div>
             <h4>Student Messages</h4>
             <div id="admin-messages" style="margin-top:20px; max-height:400px; overflow-y:auto;"></div>
@@ -168,42 +166,72 @@
             if(id === 'admin') loadAdminMessages();
         };
 
-        // Function to clean Drive Links for Direct Access
-        const getDriveUrl = (url, mode) => {
-            const fileId = url.includes('/d/') ? url.split('/d/')[1].split('/')[0] : "";
-            if (!fileId) return url;
-            return mode === 'view' 
-                ? `https://drive.google.com/uc?export=view&id=${fileId}` 
-                : `https://drive.google.com/uc?export=download&id=${fileId}`;
-        };
-
         async function init() {
             const list = document.getElementById('studentList');
-            students.forEach((s, idx) => { list.innerHTML += `<li style="padding:10px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;"><span><strong>${idx + 1}.</strong> ${s.n}</span><strong style="color:var(--primary)">${s.c}</strong></li>`; });
+            if(list.innerHTML === "") {
+                students.forEach((s, idx) => { list.innerHTML += `<li style="padding:10px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;"><span><strong>${idx + 1}.</strong> ${s.n}</span><strong style="color:var(--primary)">${s.c}</strong></li>`; });
+            }
+            
             const q = query(collection(db, "drive_memories"), orderBy("createdAt", "desc"));
             const snap = await getDocs(q);
             const gal = document.getElementById('gallery');
             gal.innerHTML = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                const viewUrl = getDriveUrl(d.url, 'view');
-                const dlUrl = getDriveUrl(d.url, 'download');
-                const dateStr = d.date || "Unknown Date";
-                const locStr = d.location || "Dodoma";
+            snap.forEach(docSnap => {
+                const d = docSnap.data();
+                const fileId = d.url.includes('/d/') ? d.url.split('/d/')[1].split('/')[0] : (d.url.includes('id=') ? d.url.split('id=')[1].split('&')[0] : "");
                 
-                gal.innerHTML += `<div class="card">
-                    <img src="${viewUrl}" onerror="this.src='https://via.placeholder.com/400x300?text=Private+Link'">
-                    <div class="card-info">
-                        <h4>${d.name}</h4>
-                        <span class="card-meta"><i class="fas fa-calendar-alt"></i> ${dateStr} | <i class="fas fa-map-marker-alt"></i> ${locStr}</span>
-                        <div class="card-btns">
-                            <a href="${viewUrl}" target="_blank" class="btn btn-view">View Full</a>
-                            <a href="${dlUrl}" download class="btn btn-dl">Download</a>
+                // Direct View and Download Links
+                const viewLink = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                const dlLink = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                const thumb = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w800` : "https://via.placeholder.com/400x300";
+                
+                const dateStr = d.uploadDate || "Recent";
+                const locStr = d.location || "Mpwapwa";
+
+                gal.innerHTML += `
+                    <div class="card">
+                        <img src="${thumb}">
+                        <div class="card-info">
+                            <span class="card-meta"><i class="fas fa-calendar"></i> ${dateStr} | <i class="fas fa-map-marker-alt"></i> ${locStr}</span>
+                            <h4>${d.name}</h4>
+                            <div class="card-btns">
+                                <a href="${viewLink}" target="_blank" class="btn btn-view">View</a>
+                                <a href="${dlLink}" download class="btn btn-dl">Download</a>
+                            </div>
                         </div>
-                    </div>
-                </div>`;
+                    </div>`;
             });
         }
+
+        window.syncDrive = async () => {
+            const n = document.getElementById('event-name').value;
+            const l = document.getElementById('drive-link').value;
+            if(!n || !l) return alert("Ingiza taarifa zote");
+            
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('en-GB'); // DD/MM/YYYY
+            const locationStr = "Mpwapwa, Dodoma"; // Default Location
+
+            await addDoc(collection(db, "drive_memories"), { 
+                name: n, 
+                url: l, 
+                createdAt: serverTimestamp(),
+                uploadDate: dateStr,
+                location: locationStr
+            });
+            alert("Picha imehifadhiwa na Tarehe na Location!"); 
+            location.reload();
+        };
+
+        // --- Other functions remain same ---
+        window.submitFeedback = async () => {
+            const n = document.getElementById('fb-name').value;
+            const m = document.getElementById('fb-message').value;
+            if(!m) return alert("Empty Message");
+            await addDoc(collection(db, "vault_feedback"), { name: n, message: m, time: serverTimestamp() });
+            alert("Asante, ujumbe umetumwa kwa Fedrick");
+            document.getElementById('fb-name').value = ""; document.getElementById('fb-message').value = "";
+        };
 
         async function loadAdminMessages() {
             const msgDiv = document.getElementById('admin-messages');
@@ -226,52 +254,6 @@
                 await deleteDoc(doc(db, "vault_feedback", id));
                 loadAdminMessages();
             }
-        };
-
-        window.submitFeedback = async () => {
-            const n = document.getElementById('fb-name').value;
-            const m = document.getElementById('fb-message').value;
-            if(!m) return alert("Empty Message");
-            await addDoc(collection(db, "vault_feedback"), { name: n, message: m, time: serverTimestamp() });
-            alert("Thank you, message sent to admin fedrick directly");
-            document.getElementById('fb-name').value = ""; document.getElementById('fb-message').value = "";
-        };
-
-        window.syncDrive = async () => {
-            const n = document.getElementById('event-name').value;
-            const l = document.getElementById('drive-link').value;
-            if(!n || !l) return alert("Missing Info");
-            
-            const status = document.getElementById('loc-status');
-            status.innerText = "Syncing with location...";
-
-            // Auto Date
-            const today = new Date().toLocaleDateString('en-GB');
-
-            // Auto Location
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const loc = "Mpwapwa, Dodoma"; // Default location for the college context
-                await addDoc(collection(db, "drive_memories"), { 
-                    name: n, 
-                    url: l, 
-                    date: today, 
-                    location: loc, 
-                    createdAt: serverTimestamp() 
-                });
-                alert("Synced Successfully!"); 
-                location.reload();
-            }, async (err) => {
-                // Fallback if GPS is off
-                await addDoc(collection(db, "drive_memories"), { 
-                    name: n, 
-                    url: l, 
-                    date: today, 
-                    location: "Dodoma, TZ", 
-                    createdAt: serverTimestamp() 
-                });
-                alert("Synced! (GPS disabled, used default location)"); 
-                location.reload();
-            });
         };
 
         init();
