@@ -36,12 +36,13 @@
         .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; transition: 0.3s; border: 1px solid rgba(255,255,255,0.05); }
         .card img { width: 100%; height: 180px; object-fit: cover; }
         .card-info { padding: 15px; }
+        .card-info h4 { font-size: 0.95rem; margin-bottom: 5px; }
+        .card-meta { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px; display: block; }
         .card-btns { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
         .btn { padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .btn-view { background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary); }
         .btn-dl { background: var(--primary); color: var(--dark); border: none; }
 
-        /* About Section Layout */
         .about-box { max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 35px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); text-align: left; }
         .about-box h2 { color: var(--primary); margin-bottom: 15px; text-align: center; }
         .about-box h3 { margin-top: 25px; color: #fff; border-left: 4px solid var(--primary); padding-left: 10px; }
@@ -99,15 +100,12 @@
     <section id="page-about" class="page-section">
         <div class="about-box">
             <h2>Mpwapwa Teachers' College</h2>
-            
             <h3>History of the College</h3>
-            <p>Mpwapwa Teachers' College (Mpwapwa TC) is one of the oldest and most prestigious educational institutions in Tanzania. Located in Mpwapwa, Dodoma, it was established during the colonial era to provide high-quality teacher training. For decades, it has stood as a symbol of academic excellence, producing thousands of educators who have played a vital role in building the nation's literacy and intellectual foundation. Its historic architecture and long-standing traditions make it a landmark of Tanzanian heritage.</p>
-            
+            <p>Mpwapwa Teachers' College (Mpwapwa TC) is one of the oldest and most prestigious educational institutions in Tanzania. Located in Mpwapwa, Dodoma, it was established during the colonial era to provide high-quality teacher training.</p>
             <h3>Purpose of the Vault</h3>
-            <p>The <b>MpwapwaTC Memory Vault</b> was founded in 2023 by <b>Fedrick MB</b>. This digital initiative was born out of a desire to prevent college memories from being lost to time. In the past, photos were stored in physical albums or on phone storage that often gets lost or corrupted.</p>
-            
+            <p>The <b>MpwapwaTC Memory Vault</b> was founded in 2023 by <b>Fedrick MB</b>. This digital initiative was born out of a desire to prevent college memories from being lost to time.</p>
             <h3>Our Mission</h3>
-            <p>Our mission is to provide a high-definition, cloud-based sanctuary where students and alumni of the 2026 batch and beyond can store and retrieve photos of their graduations, teaching practices, and campus events. By using cloud technology, we ensure that the spirit and legacy of MpwapwaTC remain accessible to the entire community, anytime and anywhere, in absolute clarity.</p>
+            <p>Our mission is to provide a high-definition, cloud-based sanctuary where students and alumni of the 2026 batch and beyond can store and retrieve photos of their graduations and campus events.</p>
         </div>
     </section>
 
@@ -128,6 +126,7 @@
                 <input type="text" id="event-name" placeholder="Event Name" style="width:100%; padding:12px; margin:10px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:8px;">
                 <input type="text" id="drive-link" placeholder="Paste Drive Link" style="width:100%; padding:12px; margin:10px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:8px;">
                 <button class="btn btn-dl" style="width:100%; padding:12px" onclick="syncDrive()">Sync Image</button>
+                <p id="loc-status" style="font-size:0.7rem; color:var(--primary); margin-top:5px;"></p>
             </div>
             <h4>Student Messages</h4>
             <div id="admin-messages" style="margin-top:20px; max-height:400px; overflow-y:auto;"></div>
@@ -143,14 +142,6 @@
             Designed and Maintained by <strong>Fedrick MB</strong>.
         </div>
     </footer>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(() => { /* Silence for non-https */ });
-            });
-        }
-    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
@@ -177,6 +168,15 @@
             if(id === 'admin') loadAdminMessages();
         };
 
+        // Function to clean Drive Links for Direct Access
+        const getDriveUrl = (url, mode) => {
+            const fileId = url.includes('/d/') ? url.split('/d/')[1].split('/')[0] : "";
+            if (!fileId) return url;
+            return mode === 'view' 
+                ? `https://drive.google.com/uc?export=view&id=${fileId}` 
+                : `https://drive.google.com/uc?export=download&id=${fileId}`;
+        };
+
         async function init() {
             const list = document.getElementById('studentList');
             students.forEach((s, idx) => { list.innerHTML += `<li style="padding:10px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;"><span><strong>${idx + 1}.</strong> ${s.n}</span><strong style="color:var(--primary)">${s.c}</strong></li>`; });
@@ -186,9 +186,22 @@
             gal.innerHTML = "";
             snap.forEach(doc => {
                 const d = doc.data();
-                const fileId = d.url.includes('/d/') ? d.url.split('/d/')[1].split('/')[0] : "";
-                const thumb = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w800` : "https://via.placeholder.com/400x300";
-                gal.innerHTML += `<div class="card"><img src="${thumb}"><div class="card-info"><h4>${d.name}</h4><div class="card-btns"><a href="${d.url}" target="_blank" class="btn btn-view">View</a><a href="${d.url}" target="_blank" class="btn btn-dl">Download</a></div></div></div>`;
+                const viewUrl = getDriveUrl(d.url, 'view');
+                const dlUrl = getDriveUrl(d.url, 'download');
+                const dateStr = d.date || "Unknown Date";
+                const locStr = d.location || "Dodoma";
+                
+                gal.innerHTML += `<div class="card">
+                    <img src="${viewUrl}" onerror="this.src='https://via.placeholder.com/400x300?text=Private+Link'">
+                    <div class="card-info">
+                        <h4>${d.name}</h4>
+                        <span class="card-meta"><i class="fas fa-calendar-alt"></i> ${dateStr} | <i class="fas fa-map-marker-alt"></i> ${locStr}</span>
+                        <div class="card-btns">
+                            <a href="${viewUrl}" target="_blank" class="btn btn-view">View Full</a>
+                            <a href="${dlUrl}" download class="btn btn-dl">Download</a>
+                        </div>
+                    </div>
+                </div>`;
             });
         }
 
@@ -228,8 +241,37 @@
             const n = document.getElementById('event-name').value;
             const l = document.getElementById('drive-link').value;
             if(!n || !l) return alert("Missing Info");
-            await addDoc(collection(db, "drive_memories"), { name: n, url: l, createdAt: serverTimestamp() });
-            alert("Synced!"); location.reload();
+            
+            const status = document.getElementById('loc-status');
+            status.innerText = "Syncing with location...";
+
+            // Auto Date
+            const today = new Date().toLocaleDateString('en-GB');
+
+            // Auto Location
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const loc = "Mpwapwa, Dodoma"; // Default location for the college context
+                await addDoc(collection(db, "drive_memories"), { 
+                    name: n, 
+                    url: l, 
+                    date: today, 
+                    location: loc, 
+                    createdAt: serverTimestamp() 
+                });
+                alert("Synced Successfully!"); 
+                location.reload();
+            }, async (err) => {
+                // Fallback if GPS is off
+                await addDoc(collection(db, "drive_memories"), { 
+                    name: n, 
+                    url: l, 
+                    date: today, 
+                    location: "Dodoma, TZ", 
+                    createdAt: serverTimestamp() 
+                });
+                alert("Synced! (GPS disabled, used default location)"); 
+                location.reload();
+            });
         };
 
         init();
